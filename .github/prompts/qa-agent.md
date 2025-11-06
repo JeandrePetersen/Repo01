@@ -79,4 +79,6 @@ Output format:
 **Regression Areas:**  
 **Recommended Automation:**  
 
-Once you have completed all tasks, generate Test_Case_${PDR Number}.md and Test_Plan_${PDR Number}.md using test-case-template.md and test-plan-template.md.
+Once you have completed all tasks, 
+Generate Test_Case_${PDR Number}.md, Test_Plan_${PDR Number}.md and Test_Checklist_${PDR Number} 
+Using test-case-template.md, test-plan-template.md and testers-checklist-template.md respectively.
