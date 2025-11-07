@@ -1,17 +1,15 @@
-# Test Plan - PDR 134924
+# Test Plan Document - PDR 134924
+**GENPJM - Custom Forms Saved Incorrectly When Zero Lines**
+
 Copyright Notice: This document is for SYSPRO (Pty) Ltd internal usage only.
 
 This document is provided outside of the SYSPRO development environment for informational purposes only. SYSPRO makes no warranties, express or implied, in this document. The information contained in this document is an overview of the intended functionality for SYSPRO and should not be interpreted to be a commitment on the final features, enhancements or scheduling.
 
 ## 1. DOCUMENT INFORMATION
-**PDR Number:** 134924  
-**Program:** GENPJM.CBL  
-**Module:** GL Journal Entry  
-**Developer:** ara  
-**Issue Date:** 22/10/25  
+User Azure DevOps profile: QA Lead, Quality Assurance Manager
 
 ## 2. DOCUMENT HISTORY
-Version 1.0 - Initial test plan for custom forms zero lines fix
+<Version 1.0>
 
 ## 3. TABLE OF CONTENTS
 1. DOCUMENT INFORMATION
@@ -33,160 +31,194 @@ Version 1.0 - Initial test plan for custom forms zero lines fix
 ## 4. DEVELOPMENT QUADRANT
 **Risk Level:** Medium
 
-The fix addresses a data integrity issue with custom forms when journal entries have zero lines. While not critical to core functionality, it affects data quality and user experience.
-
 ## 5. SYNOPSIS
-**Developer Synopsis:** Custom forms saved incorrectly when Zero lines
 
-**Code Analysis:** The fix introduces an `invalid-ent` flag to track when journal entries are in an invalid state (zero lines). This prevents custom form data from being saved incorrectly or becoming corrupted when users attempt to save journals without any detail lines.
+**Developer Synopsis:** Custom forms saved incorrectly when Zero lines (PDR 134924)
 
-**Change Context:** This addresses a data integrity issue where the system would attempt to persist custom form data even when journal entries were incomplete (no detail lines), leading to inconsistent or corrupted form information.
+**Code Changes Analysis:** 
+The fix addresses an issue where custom form fields were being incorrectly saved and associated with journal entry lines that contain zero amounts in both debit and credit fields. The solution implements validation to detect zero-amount lines and prevents custom form data from being saved for these invalid entries, while ensuring proper cleanup of previously saved custom form data.
 
 ## 6. PROGRAM LIST
-- **GENPJM.CBL** - Main GL Journal Entry program
-  - Version 107a changes: Added `invalid-ent` flag for zero-line validation
-  - Related to custom forms processing and journal validation
+
+**Primary Program:**
+- GENPJM.CBL (GL Journal Entry) - Version 107a dated 22/10/25
+
+**Related Components:**
+- GENJND (General Journal Detail file structure)
+- Custom Form framework components
+- Journal entry validation routines
+
+**Code Changes Summary:**
+The implementation adds validation logic to check debit and credit amounts before processing custom form data, ensuring only lines with actual monetary values retain their custom form associations.
 
 ## 7. FEATURES TO BE TESTED
-- Custom forms functionality with zero journal lines
-- Journal entry validation for incomplete entries
-- Data integrity preservation for custom forms
-- Save functionality behavior with empty journals
-- Transition scenarios (adding/removing all lines)
-- Custom form data persistence and retrieval
-- Error handling for invalid journal states
-- User workflow when creating journals without lines
+
+**Primary Features:**
+- Custom form field saving functionality for journal entries
+- Zero-amount line detection and validation
+- Custom form data cleanup and deletion processes
+- Journal entry line validation with custom forms
+- Data association integrity between journal lines and custom forms
+
+**Secondary Features:**
+- Journal modification workflows with custom forms
+- Custom form field validation and error handling
+- Journal copying functionality with custom form data
+- Performance impact of additional validation logic
 
 ## 8. FEATURES NOT TO BE TESTED
-- Standard journal posting functionality
-- Authorization workflows for complete journals
-- Multi-currency journal features
-- Inter-company journal processing
-- Standard journal templates and copying
-- Journal reporting and printing
-- GL account validation and lookups
-- Period and year validation (unchanged functionality)
+
+**Out of Scope:**
+- Core journal posting functionality (unchanged by this fix)
+- Standard journal entry workflows without custom forms
+- Journal authorization and approval processes (unaffected)
+- Currency conversion and multi-currency handling
+- Inter-company journal functionality
+- Journal printing and reporting (unless custom form related)
+- User access control and security features
 
 ## 9. APPROACH
 
-### ISTQB Testing Techniques
+### 9.1 ISTQB Software Testing Techniques
 
-**Technique:** Boundary Value Analysis  
-**Explanation:** Test the critical boundary of zero journal lines to ensure custom forms behave correctly at this edge case where the system transitions from valid to invalid states.
+**Equivalence Partitioning:**
+- **Technique:** Partition journal line amounts into valid (non-zero) and invalid (zero) equivalence classes
+- **Explanation:** Test custom form behavior systematically by dividing input data into meaningful groups based on amount values
 
-**Technique:** Equivalence Partitioning  
-**Explanation:** Partition test scenarios into two classes: valid journals (with lines) and invalid journals (without lines) to verify different system behaviors and custom form handling.
+**Boundary Value Analysis:**
+- **Technique:** Test boundary conditions around zero amounts (0.00, 0.01, -0.01)
+- **Explanation:** Verify the system correctly identifies true zero amounts and handles edge cases near the zero boundary
 
-**Technique:** Error Guessing  
-**Explanation:** Focus on scenarios where users might accidentally create incomplete journals and attempt operations, based on typical user error patterns.
+**Decision Table Testing:**
+- **Technique:** Create comprehensive decision tables for debit/credit amount combinations
+- **Explanation:** Systematically test all possible combinations of zero and non-zero debit/credit amounts to ensure complete logic coverage
 
-**Technique:** State Transition Testing  
-**Explanation:** Test transitions between journal states (empty → populated → empty) to verify custom form data integrity throughout state changes.
+**State Transition Testing:**
+- **Technique:** Test journal entry states with and without custom form data
+- **Explanation:** Verify correct transitions between states when custom form data is added, modified, or removed
 
-### Test Approaches
+### 9.2 Test Approaches
 
-**Description:** Negative Testing  
-**Explanation:** Systematically test scenarios where journals are in invalid states (zero lines) to verify proper error handling and data protection mechanisms.
+**Risk-Based Testing:**
+- **Description:** Prioritize testing based on the risk of custom form data corruption
+- **Explanation:** Focus testing efforts on scenarios most likely to cause data integrity issues or user impact
 
-**Description:** Data Integrity Testing  
-**Explanation:** Verify that custom form data remains consistent and uncorrupted across all journal state transitions, with particular focus on zero-line scenarios.
+**Data-Driven Testing:**
+- **Description:** Test with comprehensive data sets covering various amount combinations
+- **Explanation:** Create systematic test data matrices to ensure thorough coverage of amount scenarios and custom form configurations
 
-**Description:** User Workflow Testing  
-**Explanation:** Test complete user journeys from journal creation through custom form entry to final save operations, covering various line count scenarios.
+**Negative Testing:**
+- **Description:** Test error scenarios and invalid input conditions
+- **Explanation:** Verify system handles edge cases gracefully and provides appropriate error messages when custom form processing encounters issues
 
-**Description:** Regression Testing  
-**Explanation:** Ensure existing custom form functionality remains unaffected while validating the new zero-line handling capability.
+**Regression Testing:**
+- **Description:** Comprehensive testing of existing functionality
+- **Explanation:** Ensure the fix doesn't introduce new issues in core journal entry or custom form functionality
 
-### Functional Areas Assessment
+### 9.3 Functional Areas
 
-**Functional Suitability:** Enhancement appropriately addresses custom form saving issues when journals lack detail lines, improving overall system reliability and data quality.
+**Functional Suitability:** ≤50 words
+The fix ensures custom form functionality is suitable for its intended purpose by preventing inappropriate data associations with zero-amount journal lines, maintaining data integrity standards.
 
-**Functional Correctness:** New validation mechanism should correctly identify invalid journal states and prevent inappropriate custom form data persistence in zero-line scenarios.
+**Functional Correctness:** ≤50 words  
+Zero-amount line detection accurately identifies invalid entries and prevents custom form data corruption, ensuring correct behavior according to business requirements.
 
-**Functional Accuracy:** System should accurately detect zero-line conditions and handle associated custom form operations with precision, maintaining data accuracy.
+**Functional Accuracy:** ≤50 words
+Custom form data associations are now precisely limited to journal lines with actual monetary values, eliminating false data relationships and improving accuracy.
 
-**Functional Interoperability:** Changes should maintain compatibility with existing GL modules, custom form processors, and related journal entry systems without disruption.
+**Functional Interoperability:** ≤50 words
+Changes maintain full compatibility with existing journal entry workflows, custom form frameworks, and related system components without disrupting integration points.
 
-**Functional Completeness:** Solution provides comprehensive handling for zero-line scenarios while preserving all existing custom form capabilities and user workflows.
+**Functional Completeness:** ≤50 words
+The solution provides comprehensive handling of zero-amount scenarios in custom form processing, addressing all identified edge cases and validation requirements.
 
 ## 10. ITEMS PASS/FAIL CRITERIA
 
-### PASS CRITERIA
-- Custom forms handle zero-line scenarios without data corruption
-- System appropriately prevents or manages saving of incomplete journals
-- Data integrity maintained across all journal state transitions
-- No regression in existing custom form functionality
-- User workflows remain intuitive and functional
-- Error messages are clear and actionable when appropriate
+**PASS CRITERIA:**
+- Custom form data is NOT saved for journal lines with zero debit AND zero credit amounts
+- Custom form data IS correctly saved for journal lines with non-zero amounts  
+- Existing custom form data for valid lines remains intact during journal modifications
+- No regression issues in core journal entry functionality
+- Performance impact is within acceptable limits (< 5% degradation)
+- All boundary value tests pass (0.00, 0.01, -0.01 scenarios)
 
-### FAIL CRITERIA
-- Custom form data becomes corrupted in zero-line scenarios
-- System allows saving of inconsistent journal states
-- Data loss occurs during journal state transitions
-- Existing custom form features are broken or degraded
-- User unable to complete valid journal entry workflows
-- System crashes or produces unhandled errors
+**FAIL CRITERIA:**
+- Custom form data saved for any zero-amount journal lines
+- Loss of custom form data for valid non-zero amount lines
+- System errors or crashes during custom form processing
+- Significant performance degradation (> 5%)
+- Data corruption in journal or custom form tables
+- Any regression failures in core functionality
 
 ## 11. SUSPENSION/RESUMPTION CRITERIA
 
-### SUSPENSION CRITERIA
-- Critical data corruption issues discovered
-- System instability affecting test environment
-- Dependencies on other modules become unavailable
-- Blocking defects prevent meaningful test execution
+**SUSPENSION CRITERIA:**
+- Critical system instability preventing test execution
+- Database corruption affecting test data integrity
+- Blocking defects that prevent core functionality testing
+- Test environment unavailability for extended periods
 
-### RESUMPTION CRITERIA
-- All blocking issues resolved and verified
-- Test environment restored to stable state
-- Required test data and configurations available
-- Development team confirms fix readiness for testing
+**RESUMPTION CRITERIA:**
+- System stability restored and verified
+- Test environment fully functional and accessible
+- All blocking defects resolved and verified
+- Test data restored to known good state
 
 ## 12. TESTING TASKS
 
-### Manual Test Cases
+### 12.1 Manual Test Cases
 
-**Test Case TC-001: Zero Lines Custom Forms**
-- **Preconditions:** User has GL journal access with custom forms enabled
-- **Scenario:** Create new journal, add custom form data, but add no detail lines, then save
-- **Expected Result:** System handles custom forms appropriately without corruption or data loss
+**TC-001: Zero Amount Line Validation**
+- **Preconditions:** GL Journal Entry accessible, custom forms configured
+- **Scenario:** User creates journal entry with lines containing zero debit and credit amounts, enters custom form data for all lines including zero-amount lines
+- **Expected Result:** System saves custom form data only for non-zero amount lines, zero-amount lines are excluded from custom form processing
 
-**Test Case TC-002: Line Removal Impact**
-- **Preconditions:** Existing journal with lines and custom form data
-- **Scenario:** Remove all journal lines while custom form data exists, then save changes
-- **Expected Result:** Custom form data integrity maintained throughout the process
+**TC-002: Mixed Amount Line Processing**  
+- **Preconditions:** Access to journal entry with custom form capability
+- **Scenario:** User creates journal with combination of zero-amount and valid amount lines, enters custom form data for all lines, saves journal
+- **Expected Result:** Custom form data persists only for lines with actual monetary values, providing clear data integrity
 
-**Test Case TC-003: State Transition Validation**
-- **Preconditions:** Journal entry capability with custom forms
-- **Scenario:** Create journal, add lines and custom forms, remove all lines, add lines again
-- **Expected Result:** Custom form data remains consistent through all state changes
+**TC-003: Journal Modification Impact**
+- **Preconditions:** Existing journal with custom form data, modification permissions
+- **Scenario:** User modifies existing journal by adding zero-amount lines and entering custom form data, saves changes
+- **Expected Result:** New zero-amount lines do not retain custom form data, existing valid line data remains unchanged
 
-### Previous Events Analysis
+**TC-004: Boundary Value Verification**
+- **Preconditions:** Journal entry capability with custom forms enabled
+- **Scenario:** User creates journal lines with boundary amounts (0.00, 0.01, -0.01) in various debit/credit combinations, enters custom form data
+- **Expected Result:** Only true zero-amount lines (0.00 debit AND 0.00 credit) exclude custom form data, all other combinations save data normally
 
-**Related Historical Issues:**
-- **Version 065:** "Add custom forms to the grid" - Original implementation
-- **Version 023a:** "Custom forms (023a)" - Extended functionality  
-- **Version 082:** "Unable to add custom fields on the grid" - Field addition issues
+### 12.2 Previous Events Linked to This Event
+
+**Related Version History:**
+- Version 065: Initial custom forms implementation in GL Journal Entry
+- Version 023a: Custom form status handling and validation enhancements  
+- Any intermediate versions affecting custom form data processing
 
 **Historical Test Cases:**
-- **TC-065-001:** Verify custom forms can be properly added and saved with valid journal configurations
-- **TC-023a-001:** Validate custom forms functionality across different journal types and scenarios
-- **TC-082-001:** Ensure custom fields can be successfully added to journal grids without issues
+- **TC-HIST-001:** Verify custom form deletion functionality from version 065 remains intact
+- **TC-HIST-002:** Confirm custom form field validation from version 023a continues to function properly
+- **TC-HIST-003:** Ensure backward compatibility with journals created before this fix implementation
 
 ## 13. ENVIRONMENT
-- **Development Environment:** IMP - For defect reproduction
-- **Test Environment:** TST - For fix validation and regression testing  
-- **Requirements:** SYSPRO GL module with custom forms enabled
-- **Test Data:** Sample journals with and without detail lines, custom form configurations
+
+**Test Environment:** TST (Test)
+**System Requirements:** SYSPRO ERP with GL module enabled
+**Database:** Test database with custom form tables configured
+**Access Requirements:** GL Journal Entry permissions, custom form configuration access
+**Test Data:** Sample journal entries with various amount combinations
 
 ## 14. RESPONSIBILITIES
-- **TESTER:** QA Team Member (To be assigned)
-- **DEVELOPER:** ara (Primary developer for PDR 134924)
-- **BUSINESS ANALYST:** Subject Matter Expert for GL Journal Entry
-- **TEST COORDINATOR:** QA Lead for GL module testing
+
+**TESTER:** QA Team Member  
+**DEVELOPER:** ara (PDR 134924 implementer)
+**QA LEAD:** QA Manager
+**BUSINESS ANALYST:** GL Module SME
 
 ## 15. SCHEDULE (PROJECT EVENTS)
-- **Test Plan Review:** [To be scheduled]
-- **Test Case Execution Start:** [Upon TST environment deployment]
-- **Regression Testing:** [Following initial test completion]
-- **Sign-off Target:** [Based on test results and issue resolution]
-- **Production Deployment:** [Subject to successful test completion]
+
+**Planning Phase:** Test plan creation and review
+**Setup Phase:** Test environment preparation and data setup
+**Execution Phase:** Test case execution and defect tracking
+**Reporting Phase:** Results analysis and sign-off documentation
+**Target Completion:** Within development sprint timeline
